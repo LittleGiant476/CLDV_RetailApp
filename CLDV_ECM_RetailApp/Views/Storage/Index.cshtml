@@ -1,0 +1,163 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+}
+
+<style>
+    body {
+        background-color: #2A2D34;
+        color: white;
+        font-family: Arial;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .card {
+        background-color: #2ab7ca;
+        padding: 25px;
+        border-radius: 12px;
+        width: 100%;
+    }
+
+    h2 {
+        color: white;
+    }
+
+    input, button {
+        padding: 8px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+    }
+
+    input {
+        width: 90%;
+    }
+
+    button {
+        background-color: #fe4a49;
+        color: white;
+        cursor: pointer;
+    }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+    .list {
+        background: white;
+        color: black;
+        padding: 15px;
+        border-radius: 8px;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    input {
+        flex: 1 1 200px;
+    }
+
+    button {
+        flex: 1 1 150px;
+    }
+</style>
+
+<h1 style="text-align:center;">Azure Storage Dashboard</h1>
+
+@if (ViewBag.Message != null)
+{
+    <p style="color:lightgreen; text-align:center;">@ViewBag.Message</p>
+}
+
+<div class="container">
+
+    <!-- Add Customer -->
+    <div class="card">
+        <h2>Add Customer + Order</h2>
+        <form asp-action="AddCustomer" method="post">
+            <input type="text" name="name" placeholder="Name" required />
+            <input type="email" name="email" placeholder="Email" required />
+            <input type="text" name="productName" placeholder="Product Name" />
+            <input type="number" name="quantity" placeholder="Quantity" />
+            <button type="submit">Add</button>
+        </form>
+    </div>
+
+    <!-- Add Product -->
+    <div class="card">
+        <h2>Add Product</h2>
+        <form asp-action="AddProduct" method="post">
+            <input type="text" name="productName" placeholder="Product Name" required />
+            <input type="number" name="quantity" placeholder="Quantity" required />
+            <button type="submit">Add</button>
+        </form>
+    </div>
+
+    <!-- Customers -->
+    <div class="card">
+        <h2>Customers</h2>
+        <div class="list">
+            @foreach (var c in ViewBag.Customers)
+            {
+                <p>@c["Name"] - @c["Email"]</p>
+            }
+        </div>
+    </div>
+
+    <!-- Products -->
+    <div class="card">
+        <h2>Products</h2>
+        <div class="list">
+            @foreach (var p in ViewBag.Products)
+            {
+                <p>@p["ProductName"] (Qty: @p["Quantity"]) - @p["CustomerEmail"]</p>
+            }
+        </div>
+    </div>
+
+    <!-- Queue card -->
+    <div class="card">
+        <h2>Queue Messages</h2>
+        <div class="list">
+            @foreach (var q in ViewBag.Queues)
+            {
+                <p>@q</p>
+            }
+        </div>
+    </div>
+
+    <!-- Blobs -->
+    <div class="card">
+        <h2>Uploaded Images</h2>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:10px;">
+            @foreach (var b in ViewBag.Blobs)
+            {
+                <img src="@b" style="width:100%; height:150px; object-fit:cover; border-radius:8px;" />
+            }
+        </div>
+    </div>
+
+    <!-- Logs -->
+    <div class="card">
+        <h2>Logs</h2>
+        <div class="list">
+            @foreach (var l in ViewBag.Logs)
+            {
+                <p>@l</p>
+            }
+        </div>
+    </div>
+
+</div>
