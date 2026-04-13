@@ -20,10 +20,11 @@ public class StorageController : Controller
         return View();
     }
 
-    /*
+    /* //
     public IActionResult Index()
     {
         return View();
+    adding comment to test git pull request
     }
     */
 
@@ -40,7 +41,7 @@ public class StorageController : Controller
             ViewBag.Message = ex.Message;
         }
 
-        return View("Index");
+        return RedirectToAction("Index");
     }
 
     [HttpPost]
@@ -56,23 +57,35 @@ public class StorageController : Controller
             ViewBag.Message = ex.Message;
         }
 
-        return View("Index");
+        return RedirectToAction("Index");
     }
 
+    
     [HttpPost]
-    public async Task<IActionResult> UploadImage(IFormFile file)
+    [RequestSizeLimit(10_000_000)] // 10MB
+    public async Task<IActionResult> UploadImage()
     {
         try
         {
+            var file = Request.Form.Files.FirstOrDefault();
+           
+
+            if (file == null || file.Length == 0)
+            {
+                TempData["Message"] = "No file selected";
+                return RedirectToAction("Index");
+            }
+
             await _service.UploadImage(file);
-            ViewBag.Message = "Image Uploaded!";
+
+            TempData["Message"] = "Image Uploaded!";
         }
         catch (Exception ex)
         {
-            ViewBag.Message = ex.Message;
+            TempData["Message"] = "ERROR: " + ex.Message;
         }
 
-        return View("Index");
+        return RedirectToAction("Index");
     }
 
     [HttpPost]
@@ -80,7 +93,7 @@ public class StorageController : Controller
     {
         await _service.SendQueueMessage(message);
         ViewBag.Message = "Queue Message Sent!";
-        return View("Index");
+        return RedirectToAction("Index");
     }
 
     [HttpPost]
@@ -88,6 +101,6 @@ public class StorageController : Controller
     {
         await _service.SaveLog(fileName, content);
         ViewBag.Message = "Log Saved!";
-        return View("Index");
+        return RedirectToAction("Index");
     }
 }

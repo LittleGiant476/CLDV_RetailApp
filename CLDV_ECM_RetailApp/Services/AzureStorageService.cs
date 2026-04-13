@@ -115,27 +115,22 @@ public class AzureStorageService
 
     // BLOB STORAGE
 
+
     public async Task UploadImage(IFormFile file)
     {
         if (file == null || file.Length == 0)
-            throw new Exception("No file selected!");
+            throw new Exception("No file selected");
 
-        try
-        {
-            var blobServiceClient = new BlobServiceClient(_connectionString);
-            var container = blobServiceClient.GetBlobContainerClient("images");
+        var blobServiceClient = new BlobServiceClient(_connectionString);
+        var container = blobServiceClient.GetBlobContainerClient("images");
 
-            await container.CreateIfNotExistsAsync();
+        await container.CreateIfNotExistsAsync();
 
-            var blob = container.GetBlobClient(file.FileName);
+        // 🔥 FIXED LINE HERE
+        var blob = container.GetBlobClient(Path.GetFileName(file.FileName));
 
-            using var stream = file.OpenReadStream();
-            await blob.UploadAsync(stream, true);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Blob upload failed: " + ex.Message);
-        }
+        using var stream = file.OpenReadStream();
+        await blob.UploadAsync(stream, true);
     }
 
 
@@ -155,21 +150,6 @@ public class AzureStorageService
         return blobs;
     }
 
-    /*
-    public async Task UploadImage(IFormFile file)
-    {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
-        var container = blobServiceClient.GetBlobContainerClient("images");
-
-        await container.CreateIfNotExistsAsync();
-
-        var blob = container.GetBlobClient(file.FileName);
-
-        using var stream = file.OpenReadStream();
-        await blob.UploadAsync(stream, true);
-    }
-
-    */
 
     // QUEUE STORAGE
     public async Task SendQueueMessage(string message)
@@ -202,17 +182,30 @@ public class AzureStorageService
     // FILE STORAGE
     public async Task SaveLog(string fileName, string content)
     {
-        var shareClient = new ShareClient(_connectionString, "logs");
-        await shareClient.CreateIfNotExistsAsync();
+        try
+        {
+            var share = new ShareClient(_connectionString, "logs");
+            await share.CreateIfNotExistsAsync();
 
-        var dir = shareClient.GetRootDirectoryClient();
-        var file = dir.GetFileClient(fileName);
+            var dir = share.GetRootDirectoryClient();
 
-        var bytes = System.Text.Encoding.UTF8.GetBytes(content);
-        using var stream = new MemoryStream(bytes);
+            var file = dir.GetFileClient(fileName);
 
-        await file.CreateAsync(stream.Length);
-        await file.UploadAsync(stream);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+            using var stream = new MemoryStream(bytes);
+
+            if (await file.ExistsAsync())
+            {
+                await file.DeleteAsync();
+            }
+
+            await file.CreateAsync(stream.Length);
+            await file.UploadAsync(stream);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Log save failed: " + ex.Message);
+        }
     }
 
     public async Task<List<string>> GetLogs()
